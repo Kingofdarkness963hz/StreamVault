@@ -1,0 +1,5 @@
+node_modules/
+database.sqlite
+public/downloads/*
+!public/downloads/.gitkeep
+.env

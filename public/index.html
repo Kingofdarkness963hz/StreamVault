@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamVault - Panel Pro con Playlists</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex">
+
+    <aside class="w-20 bg-slate-900 border-r border-slate-800 flex flex-col items-center py-6 space-y-8 select-none">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold">
+            SV
+        </div>
+        <nav class="flex flex-col space-y-6 text-slate-400">
+            <button class="p-3 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30">🏠</button>
+        </nav>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-w-0">
+        <header class="h-16 border-b border-slate-800 bg-slate-900/50 px-8 flex items-center justify-between backdrop-blur">
+            <span class="font-semibold text-slate-300">StreamVault - Arquitectura Multi-Motor & Playlists</span>
+            <div class="flex items-center space-x-2 bg-emerald-950/40 border border-emerald-800/60 px-3 py-1 rounded-full text-xs text-emerald-400">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Servidor En Línea</span>
+            </div>
+        </header>
+
+        <div class="p-8 space-y-8 max-w-7xl mx-auto w-full">
+            
+            <!-- PANEL PRINCIPAL CON TABS DE NAVEGACIÓN -->
+            <section class="bg-gradient-to-b from-slate-900 to-slate-900/60 p-8 rounded-2xl border border-slate-800 shadow-2xl relative overflow-hidden">
+                
+                <!-- SELECTOR DE MODO (TABS) -->
+                <div class="flex justify-center mb-6 space-x-2">
+                    <button onclick="cambiarModo('individual')" id="tabIndividual" class="px-5 py-2 rounded-xl text-xs font-semibold transition-all bg-emerald-600 text-white shadow-lg">
+                        ⚡ Descarga Individual (YouTube / Directo)
+                    </button>
+                    <button onclick="cambiarModo('playlist')" id="tabPlaylist" class="px-5 py-2 rounded-xl text-xs font-semibold transition-all bg-slate-800 text-slate-400 hover:bg-slate-700">
+                        📂 Playlist Masiva (YouTube)
+                    </button>
+                </div>
+
+                <!-- FORMULARIO 1: INDIVIDUAL -->
+                <div id="formIndividualContainer">
+                    <h1 class="text-2xl font-extrabold text-white tracking-tight mb-1 text-center">Descargador Individual Pro</h1>
+                    <p class="text-slate-400 text-xs max-w-lg mx-auto mb-6 text-center">Pega un enlace suelto. Detección automática de metadatos y control de duplicados independientes.</p>
+
+                    <div class="flex flex-wrap justify-center items-center gap-3 mb-4">
+                        <div class="text-xs text-slate-400 bg-slate-950/60 p-2 rounded-lg border border-slate-800">
+                            💡 <span class="text-slate-300">Conejo:</span> <code class="text-blue-400 select-all cursor-pointer">https://www.w3schools.com/html/mov_bbb.mp4</code>
+                        </div>
+                        <div id="sourceIndicator" class="text-xs bg-slate-900 border border-slate-800 text-slate-400 px-3 py-2 rounded-lg font-medium transition-all">
+                            ⚡ Esperando URL...
+                        </div>
+                    </div>
+
+                    <form id="unifiedForm" class="max-w-4xl mx-auto flex flex-col md:flex-row gap-3">
+                        <input type="url" id="urlInput" placeholder="Pega tu enlace aquí..." required
+                            class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-emerald-500">
+                        
+                        <select id="formatoSelect" class="w-full md:w-48 bg-slate-950 border border-slate-700 rounded-xl px-3 py-3 text-sm text-slate-100 focus:outline-none focus:border-emerald-500 cursor-pointer">
+                            <option value="mp4">🎬 MP4 (Video)</option>
+                            <option value="webm">🎥 WebM (Video)</option>
+                            <option value="m4a">🎶 M4A (Audio AAC)</option>
+                            <option value="mp3">🎵 MP3 (Audio)</option>
+                            <option value="wav">🎼 WAV (Audio)</option>
+                        </select>
+
+                        <button type="submit" id="btnSubmit"
+                            class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-6 py-3 rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2">
+                            <span id="btnText">Procesar ➔</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- FORMULARIO 2: PLAYLIST -->
+                <div id="formPlaylistContainer" class="hidden">
+                    <h1 class="text-2xl font-extrabold text-white tracking-tight mb-1 text-center">Descargador de Playlists Masivas</h1>
+                    <p class="text-slate-400 text-xs max-w-lg mx-auto mb-6 text-center">Pega una lista de reproducción de YouTube. Se procesará en segundo plano por lotes.</p>
+
+                    <form id="playlistForm" class="max-w-4xl mx-auto flex flex-col md:flex-row gap-3">
+                        <input type="url" id="playlistUrlInput" placeholder="Pega el enlace de la Playlist de YouTube aquí..." required
+                            class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                        
+                        <select id="playlistFormatoSelect" class="w-full md:w-48 bg-slate-950 border border-slate-700 rounded-xl px-3 py-3 text-sm text-slate-100 focus:outline-none focus:border-blue-500 cursor-pointer">
+                            <option value="mp4">🎬 MP4 (Videos)</option>
+                            <option value="mp3">🎵 MP3 (Audios)</option>
+                            <option value="m4a">🎶 M4A (Audios AAC)</option>
+                        </select>
+
+                        <button type="submit" id="btnPlaylistSubmit"
+                            class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-6 py-3 rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2">
+                            <span id="btnPlaylistText">Descargar Playlist ➔</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- TARJETA DE DUPLICADOS -->
+                <div id="duplicateCard" class="hidden py-4 flex flex-col items-center justify-center space-y-4">
+                    <div class="w-12 h-12 bg-amber-500/20 border border-amber-500/40 rounded-full flex items-center justify-center text-amber-400 text-2xl">⚠️</div>
+                    <div>
+                        <h3 class="text-xl font-bold text-amber-200">¡Enlace ya procesado previamente!</h3>
+                        <p class="text-sm text-slate-300 mt-1">Este archivo ya existe en tu servidor como:</p>
+                        <p id="existingFileName" class="text-xs font-mono bg-slate-950 px-3 py-1.5 rounded border border-amber-900/60 text-amber-400 mt-2 inline-block max-w-lg truncate"></p>
+                    </div>
+                    <div class="flex items-center space-x-4 pt-2">
+                        <button id="btnConfirmDuplicate" class="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition-all shadow-lg">Sí, descargar copia</button>
+                        <button id="btnCancelDuplicate" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-semibold px-6 py-2.5 rounded-xl text-sm transition-all">No, cancelar</button>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- SECCIONES DE HISTORIAL Y DESGLOSE -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- ARCHIVOS INDIVIDUALES -->
+                <section class="bg-slate-900/80 p-6 rounded-2xl border border-slate-800 flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-300">📦 Archivos Individuales</h2>
+                        <button onclick="cargarDatos()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700">🔄 Actualizar</button>
+                    </div>
+                    <div class="overflow-x-auto flex-1 max-h-72 overflow-y-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-800 text-slate-400 text-[10px] uppercase">
+                                    <th class="py-2.5 px-3">Archivo / Fecha</th>
+                                    <th class="py-2.5 px-3">Categoría</th>
+                                    <th class="py-2.5 px-3 text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="itemsTableBody" class="divide-y divide-slate-800/60 text-xs"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- PLAYLISTS / COLECCIONES CON INDICADOR DE ACTIVIDAD -->
+                <section class="bg-slate-900/80 p-6 rounded-2xl border border-slate-800 flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center space-x-2">
+                            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-300">📂 Playlists Descargadas</h2>
+                            <!-- Indicador Global Busy -->
+                            <div id="globalActivityIndicator" class="hidden items-center space-x-1.5 bg-blue-950/80 border border-blue-700/60 px-2.5 py-0.5 rounded-full text-[10px] text-blue-300">
+                                <span class="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span>
+                                <span id="activityText">Descargando...</span>
+                            </div>
+                        </div>
+                        <button onclick="activarSondeoManual()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700">🔄 Actualizar</button>
+                    </div>
+                    <div class="overflow-x-auto flex-1 max-h-72 overflow-y-auto space-y-3" id="playlistsContainer">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- BITÁCORA DE AUDITORÍA -->
+            <section class="bg-slate-900/80 p-6 rounded-2xl border border-slate-800 flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-sm font-bold uppercase tracking-wider text-slate-300">📋 Bitácora de Auditoría del Servidor</h2>
+                    <button onclick="cargarAuditoria()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700">🔄 Actualizar</button>
+                </div>
+                <div class="overflow-x-auto max-h-48 overflow-y-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-slate-400 text-[10px] uppercase sticky top-0 bg-slate-900">
+                                <th class="py-2 px-3">Acción</th>
+                                <th class="py-2 px-3">Detalle</th>
+                                <th class="py-2 px-3">Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auditTableBody" class="divide-y divide-slate-800/60 text-[11px] font-mono"></tbody>
+                    </table>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+        const API_URL = `http://${window.location.hostname}:3000`;
+        let isDownloadingPlaylist = false;
+        let pollingInterval = null;
+
+        function cambiarModo(modo) {
+            const tabInd = document.getElementById('tabIndividual');
+            const tabPl = document.getElementById('tabPlaylist');
+            const formContainer = document.getElementById('formIndividualContainer');
+            const formPlaylistContainer = document.getElementById('formPlaylistContainer');
+            const duplicateCard = document.getElementById('duplicateCard');
+
+            if (modo === 'individual') {
+                tabInd.className = 'px-5 py-2 rounded-xl text-xs font-semibold transition-all bg-emerald-600 text-white shadow-lg';
+                tabPl.className = 'px-5 py-2 rounded-xl text-xs font-semibold transition-all bg-slate-800 text-slate-400 hover:bg-slate-700';
+                formContainer.classList.remove('hidden');
+                formPlaylistContainer.classList.add('hidden');
+            } else {
+                tabPl.className = 'px-5 py-2 rounded-xl text-xs font-semibold transition-all bg-blue-600 text-white shadow-lg';
+                tabInd.className = 'px-5 py-2 rounded-xl text-xs font-semibold transition-all bg-slate-800 text-slate-400 hover:bg-slate-700';
+                formPlaylistContainer.classList.remove('hidden');
+                formContainer.classList.add('hidden');
+            }
+            if (duplicateCard) duplicateCard.classList.add('hidden');
+        }
+
+        const urlInput = document.getElementById('urlInput');
+        const sourceIndicator = document.getElementById('sourceIndicator');
+        if (urlInput) {
+            urlInput.addEventListener('input', (e) => {
+                const val = e.target.value.trim();
+                if (val.includes('youtube.com') || val.includes('youtu.be')) {
+                    sourceIndicator.innerHTML = '🔴 Motor Detectado: YouTube';
+                    sourceIndicator.className = 'text-xs bg-red-950/60 border border-red-800 text-red-400 px-3 py-2 rounded-lg font-medium';
+                } else if (val.length > 0) {
+                    sourceIndicator.innerHTML = '🌐 Motor Detectado: Enlace Directo';
+                    sourceIndicator.className = 'text-xs bg-blue-950/60 border border-blue-800 text-blue-400 px-3 py-2 rounded-lg font-medium';
+                } else {
+                    sourceIndicator.innerHTML = '⚡ Esperando URL...';
+                    sourceIndicator.className = 'text-xs bg-slate-900 border border-slate-800 text-slate-400 px-3 py-2 rounded-lg font-medium';
+                }
+            });
+        }
+
+        async function cargarDatos() {
+            const tbody = document.getElementById('itemsTableBody');
+            if (!tbody) return;
+            try {
+                const res = await fetch(`${API_URL}/items`);
+                const result = await res.json();
+                tbody.innerHTML = '';
+
+                if (!result.data || result.data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" class="py-4 text-center text-slate-500">No hay archivos individuales.</td></tr>`;
+                    return;
+                }
+
+                result.data.forEach(item => {
+                    const isYT = item.categoria && item.categoria.includes('YouTube');
+                    const badgeClass = isYT ? 'bg-red-950/60 text-red-300 border-red-800' : 'bg-blue-950/60 text-blue-300 border-blue-800';
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-800/50">
+                            <td class="py-2.5 px-3">
+                                <a href="${item.ruta_archivo}" target="_blank" class="font-medium text-blue-400 hover:underline block truncate max-w-[200px]" title="${item.nombre}">${item.nombre}</a>
+                                <span class="text-[9px] text-slate-500 font-mono">${item.fecha || 'Reciente'}</span>
+                            </td>
+                            <td class="py-2.5 px-3"><span class="${badgeClass} px-1.5 py-0.5 rounded text-[10px] border">${item.categoria}</span></td>
+                            <td class="py-2.5 px-3 text-center space-x-1">
+                                <a href="${item.ruta_archivo}" download class="bg-blue-950/60 hover:bg-blue-900 text-blue-300 border border-blue-800 px-2 py-0.5 rounded text-[10px]">Descargar</a>
+                                <button onclick="eliminarItem(${item.id})" class="bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800 px-2 py-0.5 rounded text-[10px]">Eliminar</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (error) { 
+                console.error("Error cargando datos:", error);
+            }
+        }
+
+        async function cargarPlaylists() {
+            const container = document.getElementById('playlistsContainer');
+            const globalIndicator = document.getElementById('globalActivityIndicator');
+            const activityText = document.getElementById('activityText');
+            if (!container) return;
+
+            try {
+                const res = await fetch(`${API_URL}/playlists`);
+                const result = await res.json();
+                container.innerHTML = '';
+
+                if (!result.data || result.data.length === 0) {
+                    container.innerHTML = `<div class="py-4 text-center text-slate-500 text-xs">No hay playlists procesadas.</div>`;
+                    if (globalIndicator) globalIndicator.classList.add('hidden');
+                    return;
+                }
+
+                let hayProcesando = false;
+
+                for (const pl of result.data) {
+                    let playlistItems = [];
+                    try {
+                        const itemsRes = await fetch(`${API_URL}/playlists/${pl.id}/items`);
+                        const itemsResult = await itemsRes.json();
+                        playlistItems = itemsResult.data || [];
+                    } catch (e) {}
+
+                    if (playlistItems.length === 0) {
+                        hayProcesando = true;
+                    }
+
+                    let itemsHtml = '';
+                    if (playlistItems.length === 0) {
+                        itemsHtml = `<div class="text-[10px] text-amber-400 italic py-1.5 px-2 flex items-center space-x-2 bg-amber-950/30 rounded border border-amber-900/40">
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
+                            <span>Descargando elementos en segundo plano...</span>
+                        </div>`;
+                    } else {
+                        playlistItems.forEach(item => {
+                            itemsHtml += `
+                                <div class="flex items-center justify-between bg-slate-950/60 px-3 py-1.5 rounded border border-slate-800 text-xs my-1">
+                                    <a href="${item.ruta_archivo}" target="_blank" class="text-blue-400 hover:underline truncate max-w-[200px]" title="${item.nombre}">${item.nombre}</a>
+                                    <a href="${item.ruta_archivo}" download class="text-[10px] bg-blue-900/40 text-blue-300 px-2 py-0.5 rounded border border-blue-800">Descargar</a>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    container.innerHTML += `
+                        <div class="bg-slate-950/40 border border-slate-800/80 rounded-xl p-3 space-y-2">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h3 class="text-xs font-bold text-blue-300 truncate max-w-[220px]" title="${pl.titulo}">📁 ${pl.titulo}</h3>
+                                    <span class="text-[9px] text-slate-500 font-mono">${pl.fecha} • (${playlistItems.length} archivos)</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-[10px] bg-indigo-950 text-indigo-300 border border-indigo-800 px-2 py-0.5 rounded">Playlist</span>
+                                    <button onclick="eliminarPlaylist(${pl.id})" class="text-[10px] bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800 px-2 py-0.5 rounded transition-all">Eliminar</button>
+                                </div>
+                            </div>
+                            <div class="mt-2 space-y-1 pl-2 border-l-2 border-slate-800 max-h-36 overflow-y-auto">
+                                ${itemsHtml}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // GESTIÓN DEL INDICADOR Y AUTO-APAGADO DEL SONDEO
+                if (isDownloadingPlaylist || hayProcesando) {
+                    if (globalIndicator) {
+                        globalIndicator.classList.remove('hidden');
+                        globalIndicator.classList.add('flex');
+                        if (activityText) activityText.innerText = 'Servidor descargando lote...';
+                    }
+                } else {
+                    // ¡Todo listo! Apagamos indicador y detenemos el bucle de sondeo automático
+                    if (globalIndicator) {
+                        globalIndicator.classList.remove('flex');
+                        globalIndicator.classList.add('hidden');
+                    }
+                    if (pollingInterval) {
+                        clearInterval(pollingInterval);
+                        pollingInterval = null;
+                    }
+                    isDownloadingPlaylist = false;
+                }
+
+            } catch (error) { 
+                console.error("Error cargando playlists:", error); 
+            }
+        }
+
+        async function cargarAuditoria() {
+            const tbody = document.getElementById('auditTableBody');
+            if (!tbody) return;
+
+            try {
+                const res = await fetch(`${API_URL}/audit`);
+                const result = await res.json();
+                tbody.innerHTML = '';
+
+                if (!result.bitacora || result.bitacora.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" class="py-4 text-center text-slate-500">Bitácora vacía.</td></tr>`;
+                    return;
+                }
+
+                result.bitacora.forEach(log => {
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-800/50">
+                            <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded border text-[9px] font-bold text-emerald-400 bg-emerald-950/50 border-emerald-800">${log.accion}</span></td>
+                            <td class="py-2 px-3 text-slate-300 truncate max-w-xs">${log.detalle}</td>
+                            <td class="py-2 px-3 text-slate-500 text-[9px]">${log.fecha}</td>
+                        </tr>
+                    `;
+                });
+            } catch (error) { 
+                console.error("Error cargando auditoría:", error);
+            }
+        }
+
+        function activarSondeoManual() {
+            cargarPlaylists();
+            cargarAuditoria();
+            cargarDatos();
+            // Si el usuario da clic en actualizar manualmente, reactivamos temporalmente el sondeo por si acaso
+            if (!pollingInterval) {
+                pollingInterval = setInterval(() => {
+                    cargarPlaylists();
+                    cargarAuditoria();
+                }, 4000);
+            }
+        }
+
+        let pendingUrl = '';
+        let pendingFormato = '';
+
+        async function procesarPeticion(url, formato, force = false) {
+            const btnText = document.getElementById('btnText');
+            const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
+            const endpoint = isYouTube ? `${API_URL}/download/youtube` : `${API_URL}/download/direct`;
+
+            btnText.innerText = 'Procesando...';
+
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url, formato, force })
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    if (result.duplicate && !force) {
+                        pendingUrl = url;
+                        pendingFormato = formato;
+                        document.getElementById('existingFileName').innerText = result.nombreExistente;
+                        
+                        document.getElementById('formIndividualContainer').classList.add('hidden');
+                        document.getElementById('duplicateCard').classList.remove('hidden');
+                        return;
+                    }
+
+                    restaurarVistaFormulario();
+                    document.getElementById('urlInput').value = '';
+                    sourceIndicator.innerHTML = '⚡ Esperando URL...';
+                    sourceIndicator.className = 'text-xs bg-slate-900 border border-slate-800 text-slate-400 px-3 py-2 rounded-lg font-medium';
+                    cargarDatos();
+                    cargarAuditoria();
+                } else {
+                    alert('Error del servidor: ' + (result.error || 'Desconocido'));
+                }
+            } catch (err) {
+                alert('Error de red: ' + err.message);
+            } finally {
+                btnText.innerText = 'Procesar ➔';
+            }
+        }
+
+        function restaurarVistaFormulario() {
+            document.getElementById('duplicateCard').classList.add('hidden');
+            document.getElementById('formIndividualContainer').classList.remove('hidden');
+            pendingUrl = '';
+            pendingFormato = '';
+        }
+
+        const unifiedForm = document.getElementById('unifiedForm');
+        if (unifiedForm) {
+            unifiedForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const url = document.getElementById('urlInput').value.trim();
+                const formato = document.getElementById('formatoSelect').value;
+                if (url) procesarPeticion(url, formato, false);
+            });
+        }
+
+        const playlistForm = document.getElementById('playlistForm');
+        if (playlistForm) {
+            playlistForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const url = document.getElementById('playlistUrlInput').value.trim();
+                const formato = document.getElementById('playlistFormatoSelect').value;
+                const btnPlaylistText = document.getElementById('btnPlaylistText');
+                const globalIndicator = document.getElementById('globalActivityIndicator');
+                const activityText = document.getElementById('activityText');
+
+                if (!url) return;
+                btnPlaylistText.innerText = 'Iniciando lote...';
+                isDownloadingPlaylist = true;
+
+                // Reactivar el sondeo automático al enviar una nueva playlist
+                if (!pollingInterval) {
+                    pollingInterval = setInterval(() => {
+                        cargarPlaylists();
+                        cargarAuditoria();
+                    }, 4000);
+                }
+
+                if (globalIndicator) {
+                    globalIndicator.classList.remove('hidden');
+                    globalIndicator.classList.add('flex');
+                    if (activityText) activityText.innerText = 'Iniciando descarga masiva...';
+                }
+
+                try {
+                    const res = await fetch(`${API_URL}/download/playlist`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url, formato })
+                    });
+
+                    const result = await res.json();
+
+                    if (res.ok) {
+                        document.getElementById('playlistUrlInput').value = '';
+                        alert(`¡Playlist "${result.playlistTitle}" aceptada! Se procesará en segundo plano.`);
+                        cargarPlaylists();
+                        cargarAuditoria();
+                    } else {
+                        alert('Error al iniciar playlist: ' + (result.error || 'Desconocido'));
+                        isDownloadingPlaylist = false;
+                    }
+                } catch (err) {
+                    alert('Error de red: ' + err.message);
+                    isDownloadingPlaylist = false;
+                } finally {
+                    btnPlaylistText.innerText = 'Descargar Playlist ➔';
+                }
+            });
+        }
+
+        const btnConfirmDuplicate = document.getElementById('btnConfirmDuplicate');
+        if (btnConfirmDuplicate) {
+            btnConfirmDuplicate.addEventListener('click', () => {
+                if (pendingUrl) {
+                    const u = pendingUrl;
+                    const f = pendingFormato;
+                    restaurarVistaFormulario();
+                    procesarPeticion(u, f, true);
+                }
+            });
+        }
+
+        const btnCancelDuplicate = document.getElementById('btnCancelDuplicate');
+        if (btnCancelDuplicate) {
+            btnCancelDuplicate.addEventListener('click', () => {
+                restaurarVistaFormulario();
+            });
+        }
+
+        async function eliminarItem(id) {
+            const res = await fetch(`${API_URL}/items/${id}`, { method: 'DELETE' });
+            if (res.ok) { cargarDatos(); cargarAuditoria(); }
+        }
+
+        async function eliminarPlaylist(id) {
+            if (!confirm('¿Estás seguro de eliminar esta playlist y todos sus archivos asociados del servidor?')) return;
+            try {
+                const res = await fetch(`${API_URL}/playlists/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    cargarPlaylists();
+                    cargarAuditoria();
+                } else {
+                    alert('Error al eliminar la playlist.');
+                }
+            } catch (err) {
+                alert('Error de red: ' + err.message);
+            }
+        }
+
+        window.onload = () => { 
+            cargarDatos(); 
+            cargarPlaylists();
+            cargarAuditoria(); 
+
+            // Sondeo inicial al abrir la página por si hay tareas pendientes
+            pollingInterval = setInterval(() => {
+                cargarPlaylists();
+                cargarAuditoria();
+            }, 4000);
+        };
+    </script>
+</body>
+</html>
